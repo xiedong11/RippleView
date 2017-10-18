@@ -17,7 +17,8 @@ allprojects {
 	
 In Your Module
 dependencies {
-    compile 'com.github.xiedong11:RippleView:1.1'
+    compile 'com.github.xiedong11:RippleView:1.2'
+    	}
 }
 ```
     
@@ -26,9 +27,16 @@ dependencies {
 **XML**
 
 ``` xml
-<com.github.xiedong11.RippleView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+<com.zhuandian.rippleview.RippleView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:rv_alpha="99"
+    app:rv_color="#faf"
+    app:rv_centered="true"
+    app:rv_type="simpleRipple"
+    app:rv_zoomDuration="300"
+    app:rv_ripplePadding="200px"
+    />
     <ImageView
         android:id="@+id/imageview"
         android:layout_width="wrap_content"
@@ -37,7 +45,7 @@ dependencies {
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-</com.example.rippleview.RippleView>
+</com.zhuandian.rippleview.RippleView>
 ``` 
 
 **属性**
