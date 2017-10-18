@@ -17,7 +17,7 @@ allprojects {
 	
 In Your Module
 dependencies {
-    compile 'com.github.xiedong11:RippleView:1.0'
+    compile 'com.github.xiedong11:RippleView:1.1'
 }
 ```
     
