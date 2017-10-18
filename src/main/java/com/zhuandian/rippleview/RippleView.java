@@ -1,6 +1,5 @@
 package com.zhuandian.rippleview;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -12,23 +11,22 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
-import android.support.annotation.ColorRes;
-
-
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 import android.widget.AdapterView;
-import android.widget.RelativeLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+
+import com.zhuandian.rippleview.R;
 
 
 /**
- * View点击水波荡漾效果
- * Created by xiedong on 17/9/28.
+ * desc：View点击水波荡漾效果
+ * author：xiedong
+ * date：2017/9/28
  */
 
 public class RippleView extends LinearLayout {
@@ -37,7 +35,9 @@ public class RippleView extends LinearLayout {
     private int HEIGHT;
     private int frameRate = 10;
     private int rippleDuration = 300;
-    private int rippleAlpha = 90;
+    private int tempRippleDuration = rippleDuration;
+    private int longRippleDuration = 400;
+    private int rippleAlpha = 99;
     private Handler canvasHandler;
     private float radiusMax = 0;
     private boolean animationRunning = false;
@@ -63,8 +63,6 @@ public class RippleView extends LinearLayout {
             invalidate();
         }
     };
-
-    private Runnable completeRunnable;
 
     private OnRippleCompleteListener onCompletionListener;
 
@@ -111,17 +109,15 @@ public class RippleView extends LinearLayout {
         paint.setColor(rippleColor);
         paint.setAlpha(rippleAlpha);
         this.setWillNotDraw(false);
+
         gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public void onLongPress(MotionEvent event) {
                 super.onLongPress(event);
+                tempRippleDuration = rippleDuration;
+                rippleDuration = longRippleDuration;
                 animateRipple(event);
-                completeRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        sendClickEvent(true);
-                    }
-                };
+                sendClickEvent(true);
             }
 
             @Override
@@ -155,7 +151,7 @@ public class RippleView extends LinearLayout {
                     canvas.restore();
                 }
                 invalidate();
-                onComplete();
+                if (onCompletionListener != null) onCompletionListener.onComplete(this);
                 return;
             } else
                 canvasHandler.postDelayed(runnable, frameRate);
@@ -165,7 +161,6 @@ public class RippleView extends LinearLayout {
 
 
             canvas.drawCircle(x, y, (radiusMax * (((float) timer * frameRate) / rippleDuration)), paint);
-
             paint.setColor(Color.parseColor("#ffff4444"));
 
             if (rippleType == 1 && originBitmap != null && (((float) timer * frameRate) / rippleDuration) > 0.4f) {
@@ -190,6 +185,12 @@ public class RippleView extends LinearLayout {
 
             timer++;
         }
+    }
+
+    @Override
+    public void clearAnimation() {
+        super.clearAnimation();
+        animationRunning = false;
     }
 
     @Override
@@ -260,22 +261,19 @@ public class RippleView extends LinearLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (gestureDetector != null && gestureDetector.onTouchEvent(event)) {
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            rippleDuration = tempRippleDuration;
+        }
+        if (gestureDetector.onTouchEvent(event)) {
             animateRipple(event);
-            completeRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    sendClickEvent(false);
-                }
-            };
-            return true;
+            sendClickEvent(false);
         }
         return super.onTouchEvent(event);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        //this.onTouchEvent(event);
+        this.onTouchEvent(event);
         return super.onInterceptTouchEvent(event);
     }
 
@@ -285,20 +283,7 @@ public class RippleView extends LinearLayout {
      * @param isLongClick Is the event a long click ?
      */
     private void sendClickEvent(final Boolean isLongClick) {
-        if (getParent() == null) {
-            return;
-        }
-        if (getParent() instanceof RecyclerView) {
-            final RecyclerView recyclerView = (RecyclerView) getParent();
-            final RecyclerView.ViewHolder holder = recyclerView.getChildViewHolder(this);
-            if (holder != null && holder.itemView != null) {
-                if (isLongClick) {
-                    holder.itemView.performLongClick();
-                } else {
-                    holder.itemView.performClick();
-                }
-            }
-        } else if (getParent() instanceof AdapterView) {
+        if (getParent() instanceof AdapterView) {
             final AdapterView adapterView = (AdapterView) getParent();
             final int position = adapterView.getPositionForView(this);
             final long id = adapterView.getItemIdAtPosition(position);
@@ -309,19 +294,6 @@ public class RippleView extends LinearLayout {
                 if (adapterView.getOnItemClickListener() != null)
                     adapterView.getOnItemClickListener().onItemClick(adapterView, this, position, id);
             }
-//        } else if(getParent() instanceof OptionViewItem){
-//            final OptionViewItem optionViewItem = (OptionViewItem) getParent();
-//            if(optionViewItem != null) {
-//                final OptionViewGroup optionViewGroup = (OptionViewGroup) getParent().getParent();
-//                if (!isLongClick) {
-//                    optionViewGroup.onClick(optionViewItem);
-//                }
-//            }
-//        } else if(getParent().getParent() instanceof OrderWidget){
-//            OrderWidget widget = (OrderWidget)getParent().getParent();
-//            if(!isLongClick && widget != null){
-//                widget.onClick(this);
-//            }
         }
     }
 
@@ -341,24 +313,11 @@ public class RippleView extends LinearLayout {
         return output;
     }
 
-    private void onComplete() {
-        if (completeRunnable != null) {
-            completeRunnable.run();
-            completeRunnable = null;
-        }
-
-        if (onCompletionListener != null) {
-            onCompletionListener.onComplete(this);
-        }
-    }
-
     /**
      * Set Ripple color, default is #FFFFFF
      *
      * @param rippleColor New color resource
      */
-    @SuppressLint("SupportAnnotationUsage")
-    @ColorRes
     public void setRippleColor(int rippleColor) {
         this.rippleColor = getResources().getColor(rippleColor);
     }
@@ -456,6 +415,7 @@ public class RippleView extends LinearLayout {
      */
     public void setRippleDuration(int rippleDuration) {
         this.rippleDuration = rippleDuration;
+        this.tempRippleDuration = rippleDuration;
     }
 
     public int getFrameRate() {
