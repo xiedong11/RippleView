@@ -2,7 +2,7 @@
 
 Material Design风格View点击水波荡效果
 
-
+![Sample Screenshot](https://github.com/xiedong11/RippleView/blob/master/picture/rippleview_example.gif)
 
 ## Gradle
 
@@ -15,14 +15,15 @@ allprojects {
 		}
 	}
 	
-Module中添加依赖
+在Module中添加依赖
 
 
 dependencies {
     compile 'com.github.xiedong11:RippleView:1.2'
     	}
-====================================================================================
-如果你的项目中引入后，项目目依赖包发生 Manifest Merge 冲突，请在Module把依赖改成如下：
+  
+  
+如果你的项目中引入后，项目目依赖包发生Manifest Merge冲突，请在Module把依赖改成如下：
 compile ('com.github.xiedong11:RippleView:6e9f300a82'){
     exclude group: 'com.android.support'
 }
