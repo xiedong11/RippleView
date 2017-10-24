@@ -24,7 +24,7 @@ dependencies {
   
   
 如果你的项目中引入后，项目目依赖包发生Manifest Merge冲突，请在Module把依赖改成如下：
-compile ('com.github.xiedong11:RippleView:6e9f300a82'){
+compile ('compile 'com.github.xiedong11:RippleView:1.2''){
     exclude group: 'com.android.support'
 }
 ```
